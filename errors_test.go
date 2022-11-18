@@ -17,3 +17,10 @@ func TestErrors(t *testing.T) {
 	t.Log(e3.Stack())
 
 }
+
+func TestErrors2(t *testing.T) {
+	e := New("a").Trace("b").Trace("c")
+	t.Log(e.Stack())
+	f := New(e.Stack()).Trace("d").Trace("f")
+	t.Log(f.Stack())
+}
