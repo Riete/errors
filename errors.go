@@ -26,17 +26,21 @@ func (e err) Stack() string {
 }
 
 func (e *err) tryConvertMsgToStacks() {
-	for _, msg := range strings.Split(e.Msg, "\n") {
+	c := 0
+	for _, msg := range strings.Split(e.Msg, "|- ") {
 		if strings.HasPrefix(msg, "[ERROR]: ") {
-			e.Msg = strings.TrimPrefix(msg, "[ERROR]: ")
+			e.Msg = strings.TrimPrefix(strings.Split(msg, "\n")[0], "[ERROR]: ")
 			continue
 		}
 		if strings.HasPrefix(msg, "Traceback:") {
 			continue
 		}
-		if strings.Contains(msg, "|- ") {
-			e.Stacks = append(e.Stacks, msg)
+		stack := ""
+		for i := 0; i < c; i++ {
+			stack += " "
 		}
+		e.Stacks = append(e.Stacks, stack+"|- "+strings.Trim(msg, " \n"))
+		c += 1
 	}
 }
 

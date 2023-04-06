@@ -19,8 +19,8 @@ func TestErrors(t *testing.T) {
 }
 
 func TestErrors2(t *testing.T) {
-	e := New("a").Trace("b").Trace("c")
+	e := New("a\nline1\nline3").Trace("b\nline3\nline4").Trace("c\nline5\nline6")
 	t.Log(e.Stack())
-	f := New(e.Stack()).Trace("d").Trace("f")
+	f := New(e.Stack()).Trace("d\n4").Trace("f\n5")
 	t.Log(f.Stack())
 }
