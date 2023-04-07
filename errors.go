@@ -32,9 +32,6 @@ func (e *err) tryConvertMsgToStacks() {
 			e.Msg = strings.TrimPrefix(strings.Split(msg, "\n")[0], "[ERROR]: ")
 			continue
 		}
-		if strings.HasPrefix(msg, "Traceback:") {
-			continue
-		}
 		stack := ""
 		for i := 0; i < c; i++ {
 			stack += " "
