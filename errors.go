@@ -36,7 +36,7 @@ func (e *err) tryConvertMsgToStacks() {
 		for i := 0; i < c; i++ {
 			stack += " "
 		}
-		e.Stacks = append(e.Stacks, stack+"|- "+strings.Trim(msg, " \n"))
+		e.Stacks = append(e.Stacks, stack+"|- "+strings.Trim(msg, "\n "))
 		c += 1
 	}
 }
