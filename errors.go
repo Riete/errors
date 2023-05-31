@@ -10,6 +10,7 @@ type Error interface {
 	Error() string
 	Stack() string
 	Trace(string) Error
+	TraceErr(error) Error
 }
 
 type err struct {
@@ -41,21 +42,32 @@ func (e *err) tryConvertMsgToStacks() {
 	}
 }
 
-func (e *err) Trace(msg string) Error {
+func (e *err) trace(msg string) Error {
 	e.Msg = msg
 	if len(e.Stacks) == 0 {
 		if strings.Contains(e.Msg, "Traceback:\n") { // maybe from stacked error
 			e.tryConvertMsgToStacks()
 		} else {
-			e.Stacks = append(e.Stacks, fmt.Sprintf("|- %s %s", e.runtime(3), msg))
+			e.Stacks = append(e.Stacks, fmt.Sprintf("|- %s %s", e.runtime(4), msg))
 		}
 	} else {
 		stack := ""
 		for i := 0; i < len(e.Stacks); i++ {
 			stack += " "
 		}
-		stack += "|- " + e.runtime(2) + " " + msg
+		stack += "|- " + e.runtime(3) + " " + msg
 		e.Stacks = append(e.Stacks, stack)
+	}
+	return e
+}
+
+func (e *err) Trace(msg string) Error {
+	return e.trace(msg)
+}
+
+func (e *err) TraceErr(err error) Error {
+	if err != nil {
+		return e.trace(err.Error())
 	}
 	return e
 }
