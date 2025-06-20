@@ -65,6 +65,10 @@ func (e *err) Trace(msg string) Error {
 	return e.trace(msg)
 }
 
+func (e *err) Tracef(format string, v ...any) Error {
+	return e.trace(fmt.Sprintf(format, v...))
+}
+
 func (e *err) TraceErr(err error) Error {
 	if err != nil {
 		return e.trace(err.Error())
