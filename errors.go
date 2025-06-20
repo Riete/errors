@@ -10,6 +10,7 @@ type Error interface {
 	Error() string
 	Stack() string
 	Trace(string) Error
+	Tracef(string, ...any) Error
 	TraceErr(error) Error
 }
 
