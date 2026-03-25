@@ -83,14 +83,26 @@ func (e err) runtime(skip int) string {
 }
 
 func New(msg string) Error {
-	e := &err{}
+	e := new(err)
 	return e.Trace(msg)
 }
 
-func NewFromErr(er error) Error {
-	if er == nil {
+func NewFromErr(errors ...error) Error {
+	if len(errors) == 0 {
 		return nil
 	}
-	e := &err{}
-	return e.Trace(er.Error())
+	var e *err
+	for _, i := range errors {
+		if i == nil {
+			continue
+		}
+		if e == nil {
+			e = new(err)
+		}
+		_ = e.TraceErr(i)
+	}
+	if e == nil {
+		return nil
+	}
+	return e
 }

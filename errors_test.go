@@ -24,3 +24,15 @@ func TestErrors2(t *testing.T) {
 	f := New(e.Stack()).Trace("d\n4").Trace("f\n5")
 	t.Log(f.Stack())
 }
+
+func TestNewError(t *testing.T) {
+	var e1 error
+	e2 := errors.New("e2")
+	e3 := errors.New("e3")
+	var e4 error
+	s1 := NewFromErr(e1, e2, e3, e4)
+	s2 := NewFromErr(e1, e4)
+	t.Log(s1 == nil)
+	t.Log(s2 == nil)
+
+}
