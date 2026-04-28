@@ -106,22 +106,15 @@ func NewFromErr(errors ...error) Error {
 	}
 	var stackMsg []string
 	var errMsg string
-	isFirstError := false
 	for _, i := range errors {
 		if e := newFromErr(i); e != nil {
-			if !isFirstError {
-				stacks := e.Stacks
-				stackMsg = append(stackMsg, "\n"+stacks[0])
-				stackMsg = append(stackMsg, e.Stacks[1:]...)
-				isFirstError = true
-			} else {
-				stackMsg = append(stackMsg, e.Stacks...)
-			}
+			stackMsg = append(stackMsg, e.Stacks...)
 			errMsg = i.Error()
 		}
 	}
 	if errMsg != "" {
-		return New(strings.Join(stackMsg, "\n")).Trace(errMsg)
+		stackMsg = append([]string{fmt.Sprintf("[ERROR]: %s\nTraceback:\n", errMsg)}, stackMsg...)
+		return New(strings.Join(stackMsg, "\n"))
 	}
 	return nil
 }
