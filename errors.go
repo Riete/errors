@@ -121,7 +121,7 @@ func NewFromErr(errors ...error) Error {
 		}
 	}
 	if errMsg != "" {
-		return New(strings.Join(stackMsg, "\n")).Trace(errMsg)
+		return New(strings.Join(stackMsg, "\n1")).Trace(errMsg)
 	}
 	return nil
 }
