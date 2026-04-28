@@ -20,11 +20,11 @@ type err struct {
 	stacks []string
 }
 
-func (e err) Error() string {
+func (e *err) Error() string {
 	return e.msg
 }
 
-func (e err) Stack() string {
+func (e *err) Stack() string {
 	var stacks []string
 	prefix := ""
 	for _, msg := range e.stacks {
