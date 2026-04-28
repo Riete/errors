@@ -16,49 +16,40 @@ type Error interface {
 }
 
 type err struct {
-	Msg    string
-	Stacks []string
+	msg    string
+	stacks []string
 }
 
 func (e err) Error() string {
-	return e.Msg
+	return e.msg
 }
 
 func (e err) Stack() string {
-	return fmt.Sprintf("[ERROR]: %s\nTraceback:\n%s", e.Msg, strings.Join(e.Stacks, "\n"))
+	var stacks []string
+	prefix := ""
+	for _, msg := range e.stacks {
+		prefix += " "
+		stacks = append(stacks, fmt.Sprintf("%s|- %s", prefix, msg))
+	}
+	return fmt.Sprintf("[ERROR]: %s\nTraceback:\n%s", e.msg, strings.Join(stacks, "\n"))
 }
 
 func (e *err) tryConvertMsgToStacks() {
-	c := 0
-	for _, msg := range strings.Split(e.Msg, "|- ") {
+	for _, msg := range strings.Split(e.msg, "|- ") {
 		if strings.HasPrefix(msg, "[ERROR]: ") {
-			e.Msg = strings.TrimPrefix(strings.Split(msg, "\n")[0], "[ERROR]: ")
+			e.msg = strings.TrimPrefix(strings.Split(msg, "\n")[0], "[ERROR]: ")
 			continue
 		}
-		stack := ""
-		for i := 0; i < c; i++ {
-			stack += " "
-		}
-		e.Stacks = append(e.Stacks, stack+"|- "+strings.Trim(msg, "\n "))
-		c += 1
+		e.stacks = append(e.stacks, strings.Trim(msg, "\n "))
 	}
 }
 
 func (e *err) trace(msg string) Error {
-	e.Msg = msg
-	if len(e.Stacks) == 0 {
-		if strings.Contains(e.Msg, "Traceback:\n") { // maybe from stacked error
-			e.tryConvertMsgToStacks()
-		} else {
-			e.Stacks = append(e.Stacks, fmt.Sprintf("|- %s %s", e.runtime(4), msg))
-		}
+	e.msg = msg
+	if strings.Contains(e.msg, "Traceback:\n") {
+		e.tryConvertMsgToStacks()
 	} else {
-		stack := ""
-		for i := 0; i < len(e.Stacks); i++ {
-			stack += " "
-		}
-		stack += "|- " + e.runtime(3) + " " + msg
-		e.Stacks = append(e.Stacks, stack)
+		e.stacks = append(e.stacks, fmt.Sprintf("%s %s", e.caller(3), msg))
 	}
 	return e
 }
@@ -73,48 +64,46 @@ func (e *err) Tracef(format string, v ...any) Error {
 
 func (e *err) TraceErr(err error) Error {
 	if err != nil {
+		var se Error
+		if errors.As(err, &se) {
+			return e.trace(se.Stack())
+		}
 		return e.trace(err.Error())
 	}
 	return e
 }
 
-func (e err) runtime(skip int) string {
+func (e *err) caller(skip int) string {
 	_, file, line, _ := runtime.Caller(skip)
 	return fmt.Sprintf("%s:%d", file, line)
 }
 
 func New(msg string) Error {
 	e := new(err)
-	return e.Trace(msg)
+	return e.trace(msg)
 }
 
-func newFromErr(er error) *err {
-	if er == nil {
+func NewFromErr(errs ...error) Error {
+	if len(errs) == 0 {
 		return nil
 	}
-	e := &err{}
-	var se Error
-	if errors.As(er, &se) {
-		return New(se.Stack()).(*err)
-	}
-	return e.Trace(er.Error()).(*err)
-}
-
-func NewFromErr(errors ...error) Error {
-	if len(errors) == 0 {
-		return nil
-	}
-	var stackMsg []string
-	var errMsg string
-	for _, i := range errors {
-		if e := newFromErr(i); e != nil {
-			stackMsg = append(stackMsg, e.Stacks...)
-			errMsg = i.Error()
+	var e *err
+	for _, i := range errs {
+		if i == nil {
+			continue
+		}
+		if e == nil {
+			e = new(err)
+		}
+		var se Error
+		if errors.As(i, &se) {
+			_ = e.trace(se.Stack())
+		} else {
+			_ = e.trace(i.Error())
 		}
 	}
-	if len(stackMsg) > 0 {
-		stackMsg = append([]string{fmt.Sprintf("[ERROR]: %s\nTraceback:\n", errMsg)}, stackMsg...)
-		return New(strings.Join(stackMsg, "\n"))
+	if e == nil {
+		return nil
 	}
-	return nil
+	return e
 }
