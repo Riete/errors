@@ -88,27 +88,40 @@ func New(msg string) Error {
 	return e.Trace(msg)
 }
 
+func newFromErr(er error) *err {
+	if er == nil {
+		return nil
+	}
+	e := &err{}
+	var se Error
+	if stderror.As(er, &se) {
+		return New(se.Stack()).(*err)
+	}
+	return e.Trace(er.Error()).(*err)
+}
+
 func NewFromErr(errors ...error) Error {
 	if len(errors) == 0 {
 		return nil
 	}
-	var e *err
+	var stackMsg []string
+	var errMsg string
+	inited := false
 	for _, i := range errors {
-		if i == nil {
-			continue
-		}
-		if e == nil {
-			e = new(err)
-		}
-		var sE Error
-		if stderror.As(i, &sE) {
-			_ = e.Trace(sE.Stack())
-		} else {
-			_ = e.TraceErr(i)
+		if e := newFromErr(i); e != nil {
+			if !inited {
+				stacks := e.Stacks
+				stackMsg = append(stackMsg, "\n"+stacks[0])
+				stackMsg = append(stackMsg, e.Stacks[1:]...)
+				inited = true
+			} else {
+				stackMsg = append(stackMsg, e.Stacks...)
+			}
+			errMsg = i.Error()
 		}
 	}
-	if e == nil {
-		return nil
+	if errMsg != "" {
+		return New(strings.Join(stackMsg, "\n")).Trace(errMsg)
 	}
-	return e
+	return nil
 }

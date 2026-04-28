@@ -25,16 +25,26 @@ func TestErrors2(t *testing.T) {
 	t.Log(f.Stack())
 }
 
+func TestErrors3(t *testing.T) {
+	e0 := errors.New("aa")
+	e1 := newFromErr(e0).Trace("bb").Trace("cc")
+	e2 := New(e1.Stack()).Trace("yy")
+	e2 = New(e2.Stack()).Trace("xx")
+	// t.Log(e2.Stack())
+	t.Log(New(e1.Stack()).Trace("xx").Stack())
+}
+
 func TestNewError(t *testing.T) {
 	var e1 Error
-	e2 := New("e2")
+	e2 := New("e2").Trace("xx")
 	e3 := New("e3")
 	e4 := New("e4")
 	e3.Trace("xxx")
 	e4.Trace("yyy")
+	var e5 error
 	s1 := NewFromErr(e1, e2, e3, e4)
 	t.Log(s1.Stack())
-	s2 := NewFromErr(e1, e4)
+	s2 := NewFromErr(e5, e5, e1)
 	t.Log(e1 == nil)
 	t.Log(s1 == nil)
 	t.Log(s2 == nil)
