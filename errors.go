@@ -1,6 +1,7 @@
 package errors
 
 import (
+	stderror "errors"
 	"fmt"
 	"runtime"
 	"strings"
@@ -99,7 +100,12 @@ func NewFromErr(errors ...error) Error {
 		if e == nil {
 			e = new(err)
 		}
-		_ = e.TraceErr(i)
+		var sE Error
+		if stderror.As(i, &sE) {
+			_ = e.Trace(sE.Stack())
+		} else {
+			_ = e.TraceErr(i)
+		}
 	}
 	if e == nil {
 		return nil

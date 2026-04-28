@@ -26,12 +26,16 @@ func TestErrors2(t *testing.T) {
 }
 
 func TestNewError(t *testing.T) {
-	var e1 error
-	e2 := errors.New("e2")
-	e3 := errors.New("e3")
-	var e4 error
+	var e1 Error
+	e2 := New("e2")
+	e3 := New("e3")
+	e4 := New("e4")
+	e3.Trace("xxx")
+	e4.Trace("yyy")
 	s1 := NewFromErr(e1, e2, e3, e4)
+	t.Log(s1.Stack())
 	s2 := NewFromErr(e1, e4)
+	t.Log(e1 == nil)
 	t.Log(s1 == nil)
 	t.Log(s2 == nil)
 
