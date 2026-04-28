@@ -112,7 +112,7 @@ func NewFromErr(errors ...error) Error {
 			errMsg = i.Error()
 		}
 	}
-	if errMsg != "" {
+	if len(stackMsg) > 0 {
 		stackMsg = append([]string{fmt.Sprintf("[ERROR]: %s\nTraceback:\n", errMsg)}, stackMsg...)
 		return New(strings.Join(stackMsg, "\n"))
 	}
